@@ -11,14 +11,6 @@ let userData = {
     lastName: '<p>Name</p>'
 };
 
-let userDataDeep = {
-    firstName: '<script>alert(2)</script>',
-    lastName: '<p>Name</p>',
-    additional: {
-        bio: '<b>some text</b>'
-    }
-};
-
 describe('Mongoose Sanitizer', () => {
     beforeAll(done => {
         mockgoose(mongoose).then(() => {

@@ -1,6 +1,6 @@
 {
   "name": "mongoose-sanitizer-plugin",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Sanitizer for mongoose models",
   "main": "index.js",
   "scripts": {
