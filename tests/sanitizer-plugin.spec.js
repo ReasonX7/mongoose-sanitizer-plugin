@@ -28,7 +28,7 @@ describe('Mongoose Sanitizer', () => {
             lastName: String
         });
 
-        Schema.plugin(sanitizerPlugin, { mode: 'escape' });
+        Schema.plugin(sanitizerPlugin);
 
         const User = mongoose.model('User0', Schema);
         const user = new User(userData);
