@@ -6,7 +6,7 @@ const mongoose = new Mongoose();
 
 const sanitizerPlugin = require('../lib/sanitizer-plugin');
 
-let userData = {
+const userData = {
     firstName: '<script>alert(2)</script>',
     lastName: '<p>Name</p>'
 };
@@ -15,7 +15,7 @@ describe('Mongoose Sanitizer', () => {
     beforeAll(done => {
         mockgoose(mongoose).then(() => {
             mongoose.connect('mongodb://localhost:27017/sanitizer-plugin-test', done);
-        })
+        });
     });
 
     afterEach(done => {
@@ -23,15 +23,15 @@ describe('Mongoose Sanitizer', () => {
     });
 
     it('should escape all field', done => {
-        let Schema = mongoose.Schema({
+        const Schema = mongoose.Schema({
             firstName: String,
             lastName: String
         });
 
-        Schema.plugin(sanitizerPlugin);
+        Schema.plugin(sanitizerPlugin, { mode: 'escape' });
 
-        let User = mongoose.model('User0', Schema);
-        let user = new User(userData);
+        const User = mongoose.model('User0', Schema);
+        const user = new User(userData);
 
         user.save((err, result) => {
             expect(result.firstName).toEqual('&lt;script&gt;alert(2)&lt;/script&gt;');
@@ -42,15 +42,15 @@ describe('Mongoose Sanitizer', () => {
     });
 
     it('should escape only included fields', done => {
-        let Schema = mongoose.Schema({
+        const Schema = mongoose.Schema({
             firstName: String,
             lastName: String
         });
 
         Schema.plugin(sanitizerPlugin, { include: ['firstName'] });
 
-        let User = mongoose.model('User1', Schema);
-        let user = new User(userData);
+        const User = mongoose.model('User1', Schema);
+        const user = new User(userData);
 
         user.save((err, result) => {
             expect(result.firstName).toEqual('&lt;script&gt;alert(2)&lt;/script&gt;');
@@ -61,15 +61,15 @@ describe('Mongoose Sanitizer', () => {
     });
 
     it('should escape all fields except excluded ones', done => {
-        let Schema = mongoose.Schema({
+        const Schema = mongoose.Schema({
             firstName: String,
             lastName: String
         });
 
         Schema.plugin(sanitizerPlugin, { exclude: ['firstName'] });
 
-        let User = mongoose.model('User2', Schema);
-        let user = new User(userData);
+        const User = mongoose.model('User2', Schema);
+        const user = new User(userData);
 
         user.save((err, result) => {
             expect(result.firstName).toEqual('<script>alert(2)</script>');
@@ -80,19 +80,47 @@ describe('Mongoose Sanitizer', () => {
     });
 
     it('should sanitize included field', done => {
-        let Schema = mongoose.Schema({
+        const Schema = mongoose.Schema({
             firstName: String,
             lastName: String
         });
 
         Schema.plugin(sanitizerPlugin, { mode: 'sanitize' });
 
-        let User = mongoose.model('User3', Schema);
-        let user = new User(userData);
+        const User = mongoose.model('User3', Schema);
+        const user = new User(userData);
 
         user.save((err, result) => {
             expect(result.firstName).toEqual('');
             expect(result.lastName).toEqual('<p>Name</p>');
+
+            done();
+        });
+    });
+
+    it('should escape or sanitize properties, depending on config', done => {
+        const Schema = mongoose.Schema({
+            firstName: String,
+            lastName: String
+        });
+
+        Schema.plugin(sanitizerPlugin, [
+            {
+                mode: 'sanitize',
+                include: 'firstName'
+            },
+            {
+                mode: 'escape',
+                exclude: ['firstName']
+            }
+        ]);
+
+        const User = mongoose.model('User4', Schema);
+        const user = new User(userData);
+
+        user.save((err, result) => {
+            expect(result.firstName).toEqual('');
+            expect(result.lastName).toEqual('&lt;p&gt;Name&lt;/p&gt;');
 
             done();
         });
